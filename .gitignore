@@ -3,3 +3,5 @@ avatars.tar.gz
 dist
 venv
 .idea
+models
+.ipynb_checkpoints

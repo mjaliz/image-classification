@@ -4,10 +4,9 @@ import shutil
 
 class Splitter:
     def __init__(self, input_path):
-        self.current_path = os.path.dirname(os.path.realpath(__file__))
         self.accepted_path = os.path.join(input_path, "accepted")
         self.rejected_path = os.path.join(input_path, "rejected")
-        self.root_path = os.path.join(self.current_path, "..", "..")
+        self.root_path = os.path.join(input_path, "..", "..")
 
         self.train_path = os.path.join(self.root_path, "dist", "train")
         self.valid_path = os.path.join(self.root_path, "dist", "valid")
@@ -81,6 +80,6 @@ class Splitter:
 
 if __name__ == '__main__':
     current_path = os.path.dirname(os.path.realpath(__file__))
-    input_dir = os.path.join(current_path, "..", "..", "avatars", "tmp2")
+    input_dir = os.path.join(current_path, "..", "..", "..", "dataset", "avatars", "tmp2")
     splitter = Splitter(input_dir)
     splitter.train_test_split()
