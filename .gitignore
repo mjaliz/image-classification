@@ -5,3 +5,4 @@ venv
 .idea
 models
 .ipynb_checkpoints
+search_terms.txt
