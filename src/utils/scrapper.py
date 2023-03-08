@@ -1,14 +1,13 @@
-import os
-import selenium
-from selenium import webdriver
-import time
-from PIL import Image
 import io
-import requests
-from webdriver_manager.chrome import ChromeDriverManager
-from selenium.webdriver.common.by import By
-from selenium.common.exceptions import ElementClickInterceptedException
+import os
+import time
 from uuid import uuid4
+
+import requests
+from PIL import Image
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from webdriver_manager.chrome import ChromeDriverManager
 
 
 class ImageScrapper:
@@ -42,32 +41,47 @@ class ImageScrapper:
                 print("err")
 
     def __save_image(self, url):
+        images_list = []
+        with open('downloaded.txt', 'r') as f:
+            lines = f.readlines()
+            for line in lines:
+                images_list.append(line.strip("\n"))
         file_name = f"{str(uuid4())}-scraped.jpg"
-        try:
-            image_content = requests.get(url).content
+        if not os.path.isfile(os.path.join(self.output_path, file_name)) and url not in images_list:
+            try:
+                image_content = requests.get(url).content
 
-        except Exception as e:
-            print(f"ERROR - COULD NOT DOWNLOAD {url} - {e}")
+            except Exception as e:
+                print(f"ERROR - COULD NOT DOWNLOAD {url} - {e}")
 
-        try:
-            image_file = io.BytesIO(image_content)
-            image = Image.open(image_file).convert('RGB')
+            try:
+                image_file = io.BytesIO(image_content)
+                image = Image.open(image_file).convert('RGB')
 
-            file_path = os.path.join(self.output_path, file_name)
+                file_path = os.path.join(self.output_path, file_name)
 
-            with open(file_path, 'wb') as f:
-                image.save(f, "JPEG", quality=85)
-            print(f"SAVED - {url} - AT: {file_path}")
-        except Exception as e:
-            print(f"ERROR - COULD NOT SAVE {url} - {e}")
+                with open(file_path, 'wb') as f:
+                    image.save(f, "JPEG", quality=85)
+
+                print(f"SAVED - {url} - AT: {file_path}")
+                with open('downloaded.txt', 'a') as f:
+                    f.write(f'{url}\n')
+            except Exception as e:
+                print(f"ERROR - COULD NOT SAVE {url} - {e}")
+
+    def __save_url(self, url):
+        with open('downloaded.txt', 'a') as f:
+            f.write(f'{url}\n')
 
     def scrape(self):
         try:
             self.__scroll_to_end()
         finally:
-            if len(self.img_urls):
+            if len(self.img_urls) == 0:
                 print("no images found to download try again")
                 return
-            os.makedirs(self.output_path)
+            if not os.path.isdir(self.output_path):
+                os.makedirs(self.output_path)
             for url in self.img_urls:
+                self.__save_url(url)
                 self.__save_image(url)
