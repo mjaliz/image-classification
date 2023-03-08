@@ -3,6 +3,7 @@ import os
 import time
 from uuid import uuid4
 
+import pandas as pd
 import requests
 from PIL import Image
 from selenium import webdriver
@@ -14,7 +15,9 @@ class ImageScrapper:
     def __init__(self, search_term, output_folder):
         self.search_term = search_term
         self.output_path = os.path.join(os.getcwd(), output_folder)
-        self.driver = webdriver.Chrome(ChromeDriverManager().install())
+        opts = webdriver.ChromeOptions()
+        opts.headless = True
+        self.driver = webdriver.Chrome(ChromeDriverManager().install(),options=opts)
         self.search_url = 'https://www.google.com/search?q={q}&tbm=isch&ved=2ahUKEwjw0eiunsv9AhWLuKQKHQz0Au4Q2-cCegQIABAA&oq=phone+number&gs_lcp=CgNpbWcQAzIECAAQQzIFCAAQgAQyBQgAEIAEMgUIABCABDIFCAAQgAQyBQgAEIAEMgUIABCABDIFCAAQgAQyBQgAEIAEMgUIABCABFAAWABgxgVoAHAAeACAAbACiAGwApIBAzMtMZgBAKoBC2d3cy13aXotaW1nwAEB&sclient=img&ei=VOwHZPDXFYvxkgWM6IvwDg&bih=947&biw=1920&client=firefox-b-d'
         self.driver.get(self.search_url.format(q=search_term))
         self.img_urls = set()
@@ -26,19 +29,23 @@ class ImageScrapper:
         # Locate the images to be scraped from the current page
         img_results = self.driver.find_elements(By.XPATH, "//img[contains(@class,'Q4LuWd')]")
         total_results = len(img_results)
+        print(f"{total_results} images found searching for urls...")
 
-        for i in range(0, len(img_results)):
-            img = img_results[i]
-            try:
-                img.click()
-                time.sleep(2)
-                actual_images = self.driver.find_elements(By.CSS_SELECTOR, 'img.n3VNCb')
-                for actual_image in actual_images:
-                    if actual_image.get_attribute('src') and 'https' in actual_image.get_attribute('src'):
-                        img_url = actual_image.get_attribute('src')
-                        self.img_urls.add(img_url)
-            except:
-                print("err")
+        try:
+            for i in range(0, len(img_results)):
+                img = img_results[i]
+                try:
+                    img.click()
+                    time.sleep(2)
+                    actual_images = self.driver.find_elements(By.CSS_SELECTOR, 'img.n3VNCb')
+                    for actual_image in actual_images:
+                        if actual_image.get_attribute('src') and 'https' in actual_image.get_attribute('src'):
+                            img_url = actual_image.get_attribute('src')
+                            self.img_urls.add(img_url)
+                except:
+                    print("err")
+        finally:
+            print(f"{i} urls found going to download....")
 
     def __save_image(self, url):
         images_list = []
@@ -70,7 +77,7 @@ class ImageScrapper:
                 print(f"ERROR - COULD NOT SAVE {url} - {e}")
 
     def __save_url(self, url):
-        with open('downloaded.txt', 'a') as f:
+        with open('urls.txt', 'a') as f:
             f.write(f'{url}\n')
 
     def scrape(self):
