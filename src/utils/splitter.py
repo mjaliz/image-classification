@@ -3,7 +3,7 @@ import shutil
 
 
 class Splitter:
-    def __init__(self, input_path):
+    def __init__(self, input_path, balance: bool):
         self.accepted_path = os.path.join(input_path, "accepted")
         self.rejected_path = os.path.join(input_path, "rejected")
         self.root_path = os.path.join(input_path, "..", "..")
@@ -11,6 +11,11 @@ class Splitter:
         self.train_path = os.path.join(self.root_path, "dist", "train")
         self.valid_path = os.path.join(self.root_path, "dist", "valid")
         self.test_path = os.path.join(self.root_path, "dist", "test")
+
+        if not balance:
+            self.train_path = os.path.join(self.root_path, "dist-unbalanced", "train")
+            self.valid_path = os.path.join(self.root_path, "dist-unbalanced", "valid")
+            self.test_path = os.path.join(self.root_path, "dist-unbalanced", "test")
 
         self.train_accepted_path = os.path.join(self.train_path, "accepted")
         self.train_rejected_path = os.path.join(self.train_path, "rejected")
@@ -23,8 +28,11 @@ class Splitter:
 
         self.rejected_list = os.listdir(self.rejected_path)
         self.rejected_list_len = len(self.rejected_list)
+
         self.valid_test_len = round(self.rejected_list_len * 0.1)
         self.train_len = round(self.rejected_list_len * 0.8)
+        if not balance:
+            self.train_len = round(self.accepted_list_len * 0.8)
 
         os.makedirs(self.train_accepted_path)
         os.makedirs(self.train_rejected_path)
@@ -81,5 +89,5 @@ class Splitter:
 if __name__ == '__main__':
     current_path = os.path.dirname(os.path.realpath(__file__))
     input_dir = os.path.join(current_path, "..", "..", "..", "dataset", "avatars", "tmp2")
-    splitter = Splitter(input_dir)
+    splitter = Splitter(input_dir, False)
     splitter.train_test_split()

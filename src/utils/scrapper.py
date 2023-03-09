@@ -3,26 +3,29 @@ import os
 import time
 from uuid import uuid4
 
-import pandas as pd
 import requests
 from PIL import Image
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from webdriver_manager.chrome import ChromeDriverManager
+from webdriver_manager.firefox import DriverManager
 
 
 class ImageScrapper:
     def __init__(self, search_term, output_folder):
         self.search_term = search_term
         self.output_path = os.path.join(os.getcwd(), output_folder)
-        opts = webdriver.ChromeOptions()
+        opts = webdriver.FirefoxOptions()
         opts.headless = True
-        self.driver = webdriver.Chrome(ChromeDriverManager().install(),options=opts)
+        self.driver = webdriver.Firefox(options=opts)
         self.search_url = 'https://www.google.com/search?q={q}&tbm=isch&ved=2ahUKEwjw0eiunsv9AhWLuKQKHQz0Au4Q2-cCegQIABAA&oq=phone+number&gs_lcp=CgNpbWcQAzIECAAQQzIFCAAQgAQyBQgAEIAEMgUIABCABDIFCAAQgAQyBQgAEIAEMgUIABCABDIFCAAQgAQyBQgAEIAEMgUIABCABFAAWABgxgVoAHAAeACAAbACiAGwApIBAzMtMZgBAKoBC2d3cy13aXotaW1nwAEB&sclient=img&ei=VOwHZPDXFYvxkgWM6IvwDg&bih=947&biw=1920&client=firefox-b-d'
         self.driver.get(self.search_url.format(q=search_term))
         self.img_urls = set()
 
     def __scroll_to_end(self):
+        accept_btn = self.driver.find_element(By.CSS_SELECTOR,
+                                              ".VtwTSb > form:nth-child(2) > div:nth-child(1) > div:nth-child(1) > button:nth-child(1) > span:nth-child(4)").click()
+        time.sleep(5)
         self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         time.sleep(5)
 
